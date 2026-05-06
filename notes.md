@@ -1,5 +1,13 @@
 # How to start a new Go project
 
+For simple programs that have just one file such as `main.go`, you can run the program directly without creating a module. Just navigate to the directory containing your `main.go` file and run:
+
+```bash
+go run main.go
+```
+
+Otherwise, following the steps below.
+
 Steps:
 1. Create a new directory and navigate into it:
     ```bash
