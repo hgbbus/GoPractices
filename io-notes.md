@@ -39,7 +39,7 @@ There are other format specifiers for specific types, such as `%d` for integers,
 
 ### Unbuffered Reading/Scanning
 
-Similarly, the `fmt` package provides functions for scanning input from various sources:
+Similar to the unbuffered printing functions, the `fmt` package provides functions for scanning input from various sources:
 
 | Function | Source |
 | --- | --- |
@@ -54,6 +54,18 @@ Similarly, the `fmt` package provides functions for scanning input from various 
 **Note**: `Scanln` doesn't read an entire line; it only stops at a newline. To read an entire line, must use other functions.
 
 `Scanf`, `Fscanf`, and `Sscanf` read according to a format specifier, similar to `Printf`.
+
+**Example**: Reading two lines of input from standard input. First line contains an integer `n`, and the second line contains `n` space-separated integers.
+
+```go
+    var n int
+    fmt.Scanln(&n)
+
+    ar := make([]int, n)
+    for i := range ar {
+        fmt.Scan(&ar[i])
+    }
+```
 
 ### Buffered Reading
 
@@ -79,6 +91,23 @@ Scanning stops unrecoverably at EOF, the first I/O error, or a token too large t
 
 The `Scanner.Err` method returns any error that occurred during scanning, except that if it returned `false` because it reached the end of the input, `Err` will return `nil`.
 
+**Example**: Reading two lines of input from standard input. First line contains an integer `n`, and the second line contains `n` space-separated integers.
+
+```go
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	n, _ := strconv.Atoi(scanner.Text())
+
+	scanner.Scan()
+    // strings.Fields is better than strings.Split for splitting a line into fields, 
+    // because it handles multiple spaces, leading/trailing spaces, and tabs correctly.
+	fields := strings.Fields(scanner.Text())
+	var ar []int = make([]int, n)
+	for i := range n {
+		ar[i], _ = strconv.Atoi(fields[i])
+	}
+```
+
 #### Reader
 
 The `bufio.Reader` type implements buffering for an `io.Reader` object. It also provides some help for textual I/O, such as the `ReadString` method, which reads until the first occurrence of a specified delimiter and returns a string containing the data up to and including the delimiter.
@@ -87,7 +116,7 @@ This type is more flexible than `Scanner` and can be used to read data in variou
 
 | Method | Description |
 | --- | --- |
-| `Read` | Reads data into a byte slice |
+| `Read` | Reads data into a given byte slice |
 | `ReadByte` | Reads and returns a single byte |
 | `ReadRune` | Reads and returns a single Unicode code point |
 | `ReadString` | Reads until the first occurrence of a specified delimiter and returns a string; often used for reading lines as in `ReadString('\n')` |
@@ -102,3 +131,70 @@ This type is more flexible than `Scanner` and can be used to read data in variou
 | `Size` | Returns the size of the buffer |
 | `WriteTo` | Writes data to an `io.Writer` until the buffer is empty |
 
+**Example**: Reading two lines of input from standard input. First line contains an integer `n`, and the second line contains `n` space-separated integers.
+
+```go
+    reader := bufio.NewReader(os.Stdin)
+    line, _ := reader.ReadString('\n')
+    n, _ := strconv.Atoi(strings.TrimSpace(line))
+
+    line, _ = reader.ReadString('\n')
+    fields := strings.Fields(line)
+    var ar []int = make([]int, n)
+    for i := range n {
+        ar[i], _ = strconv.Atoi(fields[i])
+    }
+```
+
+Another solution based reading bytes and manual parsing for better performance:
+
+```go
+
+var reader = bufio.NewReaderSize(os.Stdin, 1<<20)
+
+func nextInt() int {
+	sign, val := 1, 0
+
+	c, _ := reader.ReadByte()
+
+	// Skip non-digit characters
+	for (c < '0' || c > '9') && c != '-' {
+		c, _ = reader.ReadByte()
+	}
+
+	// Handle negative numbers
+	if c == '-' {
+		sign = -1
+		c, _ = reader.ReadByte()
+	}
+
+	// Parse integer
+	for c >= '0' && c <= '9' {
+		val = val*10 + int(c-'0')
+
+		c2, err := reader.ReadByte()
+		if err != nil {
+			break
+		}
+
+		c = c2
+	}
+
+	// Put back one extra byte read
+	reader.UnreadByte()
+
+	return sign * val
+}
+
+func main() {
+	n := nextInt()
+
+	nums := make([]int, n)
+
+	for i := 0; i < n; i++ {
+		nums[i] = nextInt()
+	}
+
+	fmt.Println(nums)
+}
+```
