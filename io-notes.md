@@ -33,7 +33,54 @@ There are other format specifiers for specific types, such as `%d` for integers,
 
 ### Buffered Printing
 
-.....
+The `bufio` package provides the `bufio.Writer` type. It implements buffering for an `io.Writer` object.
+
+The main methods of `bufio.Writer` are:
+
+| Method | Description |
+| --- | --- |
+| `NewWriter` | Creates a new buffered writer with default buffer size. |
+| `NewWriterSize` | Creates a new buffered writer with specified buffer size. |
+| `Size` | Returns the size of the buffer. |
+| `Write` | Writes data in a given byte slice to the buffer. |
+| `WriteByte` | Writes a single byte to the buffer. |
+| `WriteRune` | Writes a single Unicode code point to the buffer. |
+| `WriteString` | Writes a string to the buffer. |
+| `Flush` | Flushes any buffered data to the underlying `io.Writer`. |
+| `Reset` | Resets the writer to write to a new `io.Writer`. |
+| `Available` | Returns the number of bytes that can be written to the current buffer. |
+| `Buffered` | Returns the number of bytes that have been written into the current buffer. |
+
+**Note**: The `Flush` method is important because it pushes any buffered data to the underlying writer. If you forget to call `Flush`, some data may not be written out.
+
+**Example**: Writing a few lines of output to standard output using a buffered writer.
+
+```go
+	// Create a buffered writer wrapping os.Stdout
+	writer := bufio.NewWriter(os.Stdout)
+
+	// Write data into the buffer
+	writer.WriteString("Hello, ")
+	writer.WriteString("world!\n")
+
+	// You can also use fmt with the writer
+	fmt.Fprintln(writer, "Buffered output in Go")
+
+	// IMPORTANT:
+	// Flush pushes buffered data to the actual output
+	writer.Flush()
+```
+
+A more realistic example is to use a buffered writer for writing large amounts of data, such as in competitive programming or when writing to files.
+
+```go
+    writer := bufio.NewWriterSize(os.Stdout, 1<<20) // 1 MB buffer
+    defer writer.Flush() // Ensure flush at the end
+
+    for i := 0; i < 1000000; i++ {
+        fmt.Fprintf(writer, "Line %d\n", i)
+    }
+```
 
 ## Input
 
@@ -149,7 +196,6 @@ This type is more flexible than `Scanner` and can be used to read data in variou
 Another solution based reading bytes and manual parsing for better performance:
 
 ```go
-
 var reader = bufio.NewReaderSize(os.Stdin, 1<<20)
 
 func nextInt() int {
