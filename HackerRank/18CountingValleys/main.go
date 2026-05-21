@@ -6,7 +6,7 @@ func countingValleys(steps int, path string) int {
 	altitude := 0
 	valleys := 0
 
-	for i := 0; i < steps; i++ {
+	for i := range steps {
 		switch path[i] {
 		case 'U':
 			altitude++
