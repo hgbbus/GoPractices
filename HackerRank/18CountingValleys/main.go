@@ -18,6 +18,19 @@ func countingValleys(steps int, path string) int {
 		}
 	}
 
+	// alternative way to loop through the path string
+	// for _, c := range path {
+	// 	switch c {
+	// 	case 'U':
+	// 		altitude++
+	// 	case 'D':
+	// 		if altitude == 0 {
+	// 			valleys++
+	// 		}
+	// 		altitude--
+	// 	}
+	// }
+
 	return valleys
 }
 
