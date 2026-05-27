@@ -2,13 +2,6 @@ package main
 
 import "fmt"
 
-func max(a int, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func main() {
 	arr := []int{-2,1,-3,4,-1,2,1,-5,4}
 	fmt.Println("Max subarray sum:", maxSubarraySum(arr))
