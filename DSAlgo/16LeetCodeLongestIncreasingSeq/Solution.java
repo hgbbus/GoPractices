@@ -14,6 +14,7 @@ public class Solution {
     }
 
     // Approach 1: Dynamic Programming
+    // Time Complexity: O(n^2)
     public static int lengthOfLIS1(int[] nums) {
         if (nums == null || nums.length == 0) {
             return 0;
@@ -37,6 +38,8 @@ public class Solution {
     }
 
     // Approach 2: Binary Search
+    // The idea is to maintain an array tails where tails[i] is the smallest tail of all increasing subsequences of length i+1.
+    // Time Complexity: O(n log n)
     public static int lengthOfLIS(int[] nums) {
         if (nums == null || nums.length == 0) {
             return 0;
