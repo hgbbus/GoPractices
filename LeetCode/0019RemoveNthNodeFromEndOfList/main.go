@@ -37,6 +37,8 @@ func removeNthFromEnd(head *ListNode, n int) *ListNode {
 
 // Approach 2: One-pass algorithm
 func removeNthFromEndOptimal(head *ListNode, n int) *ListNode {
+
+	// Create a dummy node that points to the head of the list to handle edge cases (like removing the head)
 	dummy := &ListNode{Next: head}
 	slow, fast := dummy, dummy
 
