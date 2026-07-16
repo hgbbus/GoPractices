@@ -16,7 +16,7 @@ Steps:
     ```
 2. Initialize a new Go module:
     ```bash
-    go mod init .
+    go mod init my-go-project
     ```
    A `go.mod` file will be created in your project directory.
 3. Create a new Go file (e.g., `main.go`) and add your code:
