@@ -1,3 +1,101 @@
 # Go Practices
 
 This repository contains my Go practices through various problem solving exercises.
+
+For the reader, Go was designed to be simple, minimalistic, and efficient. It is easy to learn.
+
+Here are a list of surprising features of Go that I have found:
+- Go's contants can be untyped (uncommitted until used), which allows them to be used in a flexible way
+- Go's basic types include `string`, but it does not have a `char` type; instead, it uses `rune` (which is an alias for `int32`) to represent Unicode code points
+- Go has a `uintptr` type that is an unsigned integer large enough to hold the bit pattern of any pointer
+- Go string:
+    - is immutable (unlike C++; similar to Java and Python)
+    - is one of the basic types
+    - is a sequence of bytes, not characters; so, a string can contain any byte value, including null bytes
+    - the length of a string is the number of bytes, not the number of characters; so, `len("Hello, 世界")` returns 13, not 9, because the non-ASCII characters are represented by multiple bytes in UTF-8 encoding
+    - text strings in Go are encoded in UTF-8, which is a variable-length encoding that can represent all Unicode characters; so, non-ASCII characters may take more than one byte to encode, and the number of bytes in a string may not match the number of characters
+    - i-th byte of a string is not necessarily the i-th character; so, `s[0]` returns the first byte of the string, which may not be a complete character if the string contains non-ASCII characters
+    - Go supports raw string literals, which are enclosed in backticks `` ` ``; raw string literals can contain any characters, including newlines and backslashes, and they do not support escape sequences
+    - a Go string variable does not store the string data directly; instead, it stores a header that contains a pointer to the actual string data and the length of the string; this makes copying a string variable efficient, as it only copies the header, not the entire string data
+    - Go functions return a _replacement character_ (\uFFFD) when they encounter invalid UTF-8 sequences
+- Go also has a `error` type, which is an interface type used for error handling; it is a built-in interface that has a single method `Error() string`
+- newer Go has a `any` type, which is an alias for `interface{}`; it can hold any value of any type, similar to `Object` in Java or `any` in TypeScript
+- prefix increment/decrement operators are illegal; so, `--i` is not allowed
+- postfix increment/decrement operators are allowed, but they are statements, not expressions; so, `j = i++` is not allowed
+- Go does not have a ternary operator; so, `x := condition ? value1 : value2` is not allowed
+- Go's `for` loop is loaded; it can be used as a traditional for loop, a while loop, or an infinite loop; so, `for i := 0; i < n; i++ { ... }`, `for i < n { ... }`, and `for { ... }` are all valid
+- Go functions:
+    - can return multiple values; so, `func someFunction() (int, error) { ... }` allows you to return both a value and an error
+    - has no concept of default parameters, nor any way to specify arguments by name
+    - if you see a function without body, it is likely a function implemented in another language (e.g., C) and exposed to Go using cgo
+    - are first-class values; these values have types, can be assigned to variables, passed as arguments to other functions, and returned from functions
+    - functions are reference types
+    - function values are not comparable except comparing to `nil`
+    - can be anonymous (i.e., defined without a name) and used as function literals
+        - when a function literal is defined inside another function, it forms a closure that captures the variables from the surrounding function; so, you can access and modify those variables from within the function literal
+        - be careful when using function literals in loops, as they may capture the loop variable in a way that leads to unexpected behavior; a common workaround is to define a new variable inside the loop to hold the current value of the loop variable (e.g., `for i := 0; i < n; i++ { i := i; go func() { ... }() }`)
+    - deferred function call runs after the surrounding function returns, but before the return values are passed back to the caller; so, if you modify a named return variable in a deferred function, it will affect the value that is returned to the caller
+    - deferred function calls are executed in last-in-first-out order; so, if you have multiple `defer` statements, they will be executed in reverse order of their appearance
+    - deferred function calls are executed even if a panic occurs in the surrounding function; so, you can use `defer` to ensure that resources are cleaned up properly, even in the presence of errors
+- Go has a _blank identifier_ `_` that can be used to ignore values; so, `_, err := someFunction()` allows you to ignore the first return value and only capture the error
+- Go's `switch` statement:
+    - does not require `break` statements to prevent fall-through; so, each case is automatically terminated unless you explicitly use the `fallthrough` keyword
+    - can be _tagless_ (used without an expression), allowing you to write more flexible and complex conditions; so, `switch { case condition1: ... case condition2: ... }` is valid
+    - The `default` case is optional; buf if you include it, it can be placed anywhere in the case list, not necessarily at the end
+    - can also be used with types, allowing you to perform type assertions in a clean and concise way; so, `switch v := x.(type) { case int: ... case string: ... }` is valid
+- Go's statements can be labeled, allowing you to break or continue to a specific label; so, you can write `label: for { ... if condition { break label } ... }` to break out of the loop when a certain condition is met
+- Go supports pointers, but it does not support pointer arithmetic; so, you can have `var p *int`, but you cannot do `p++` or `p--`
+- Go allows you to return the address of a local variable from a function, effectively making it _escape_ outside the function scope; what is actually happening is that Go allocates the variable on the heap instead of the stack when it detects that its address is being returned
+- Go's `new` function does not necessarily allocate memory on the heap; it simply returns a pointer to a zero value of the specified type, and the actual allocation (stack or heap) is determined by the compiler's **escape** analysis
+- Do not confuse the scope of variables with the lifetime of variables; a variable can survive beyond its scope if it is returned from a function or captured by a closure
+- Go's package names are always lowercase; names used in a package are exported (public) if they start with an uppercase letter, and unexported (private) if they start with a lowercase letter; so, `fmt` is a package name, while `Println` is an exported function within that package
+- Go's methods can be defined on any type (and placed anywhere), including built-in types; so, you can define a method on an `int` or a `string` type
+- Go uses interfaces as abstract types to implement polymorphism; so, you can define an interface and then implement it with any type that has the required methods, without needing explicit declarations
+- Go's `defer` statement is used to ensure that a function call is performed later in a program's execution, usually for purposes of cleanup; so, `defer file.Close()` allows you to ensure that the file is closed when the surrounding function returns, even if an error occurs
+    - the deferred function and argument expressions are evaluated immediately when the `defer` statement is executed
+    - deferred function calls are executed in last-in-first-out order; so, if you have multiple `defer` statements, they will be executed in reverse order of their appearance
+    - deferred function calls are executed after the surrounding function returns, but before the return values are passed back to the caller; so, if you modify a named return variable in a deferred function, it will affect the value that is returned to the caller
+- Go's `go` statement is used to start a new goroutine, which is a lightweight thread managed by the Go runtime; so, `go someFunction()` allows you to execute `someFunction` concurrently without blocking the main execution flow
+- Go arrays:
+    - are fixed-size **values**
+    - length is part of the type; boundary checks are performed at runtime
+    - assignment of an array copies the entire array
+    - passing an array to a function also copies the entire array unless you pass a **pointer** to the array
+- Go slices:
+    - (not really a surprise) are dynamically-sized, flexible views into the elements of an array
+    - (not really a surprise) have a underlying array, a length and a capacity; the length is the number of elements in the slice, while the capacity is the number of elements in the underlying array starting from the first element of the slice
+    - (not really a surprise) builtin functions `len` and `cap` can be used to get the length and capacity of a slice; so, `len(s)` returns the number of elements in the slice `s`, while `cap(s)` returns the capacity of the slice
+    - can be efficiently assigned and passed to functions without copying the underlying array
+    - are reference types; when you assign a slice to another variable or pass it to a function, you are copying the slice header (not the underlying array); changes to the elements of the slice will affect all slices that share the same underlying array
+    - (not really a surprise) can be created using the built-in `make` function, which allows you to specify the length and capacity of the slice
+    - (not really a surprise) can be resliced to create new slices that share the same underlying array
+    - (not really a surprise) slicing beyond `cap(s)` will cause a runtime panic, but slicing beyond `len(s)` extends the slice up to its capacity
+    - (not really a surprise) can be appended to using the built-in `append` function, which may create a new underlying array if the existing capacity is exceeded
+    - calling `append` returns a new slice, which may or may not point to the same underlying array; so, you should always assign the result of `append` back to the original slice variable (e.g., `s = append(s, value)`) to ensure that you are working with the updated slice
+    - unlike arrays, slices are not comparable; so, we cannot use the `==` operator to compare two slices directly; instead, we need to compare their lengths and elements manually
+    - there is a difference between a `nil` slice and a non-nil slice with zero length and capacity; a `nil` slice has no underlying array and its length and capacity are both zero; Go functions must treat all zero-length slices the same way, whether nil or non-nil
+- Go's maps:
+    - (not really a surprise) are unordered collections of key-value pairs
+    - (not really a surprise) keys must be of a type that is comparable (i.e., supports the `==` operator); values can be of any type
+    - (not really a surprise) are reference types (to a hash table]); when you assign a map to another variable or pass it to a function, you are copying the map header (which contains a pointer to the underlying data structure), but not the underlying data itself; so, changes to the map will affect all variables that reference the same map
+    - (not really a surprise) can be created using the built-in `make` function; so, `m := make(map[string]int)` creates a map with string keys and integer values
+    - can be accessed using the syntax `m[key]`, which returns the value associated with the key; **if the key does not exist in the map, it returns the zero value of the value type** (e.g., `0` for integers, `""` for strings, `nil` for pointers, etc.)
+    - can be checked for the existence of a key using the two-value assignment form; so, `value, ok := m[key]` allows you to check if the key exists in the map, where `ok` will be `true` if the key exists and `false` otherwise
+    - (not really a surprise) can be deleted using the built-in `delete` function; so, `delete(m, key)` removes the key-value pair associated with the specified key from the map
+- Go doesn't have a built-in set type, but you can use a map with empty struct values to implement a set; so, `set := make(map[string]bool)` creates a set of strings, and you can add elements to the set by setting `set[element] = true`, check for membership using `!set[element]`, and remove elements using `delete(set, element)`
+- Go structs:
+    - (not a surprise) are value types; assignment of a struct copies the entire struct, and passing a struct to a function also copies the entire struct unless you pass a pointer to the struct
+    - are comparable if all their fields are comparable
+    - field orders matter; so, `type Point struct { X, Y int }` and `type Point struct { Y, X int }` are different types
+    - fields can contain a mixture of exported (public) or unexported (private) based on the capitalization of the field name
+    - fields can be accessed using the same dot notation whether you have a pointer to the struct or the struct itself
+    - can have methods defined on them, allowing you to associate behavior with the data structure; in other words, structs are classes as well as data structures
+    - you can have an empty struct type `struct{}`, which has no fields and occupies zero bytes of storage; while it is not recommended, some Go programmers use it instead of `bool` to represent a set of keys, since it can be more memory efficient (e.g., `set := make(map[string]struct{})`), but it may be less clear to readers who are not familiar with this idiom
+    - Go does not support inheritance, but you can achieve similar functionality using composition; so, you can embed one struct within another to reuse its fields and methods (e.g., `type Employee struct { Person }` allows `Employee` to have all the fields and methods of `Person`)
+    - Struct embedding can be anonymous field (without a name), which allows you to promote the fields and methods of the embedded struct to the outer struct; however, this promotion doesn't work for struct literals
+- Go supports JSON encoding and decoding using the `encoding/json` package; Go struct fields can be tagged with JSON field names using struct field tags
+- Go prefers `error` values over exceptions for error handling
+- Go's `panic` and `recover` mechanism allows you to handle unexpected errors and recover from them, but it is generally recommended to use `error` values for normal error handling:
+    - `panic` is used to indicate a serious error that cannot be handled gracefully; it stops the normal execution of the program and begins panicking, unwinding the stack and running deferred functions
+    - `recover` is used to regain control of a panicking goroutine; it can be called within a deferred function to catch the panic and resume normal execution
+    - using `panic` and `recover` for normal error handling is discouraged, as it can make the code harder to read and maintain; instead, use `error` values to indicate recoverable errors
