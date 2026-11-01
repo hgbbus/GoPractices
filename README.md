@@ -12,7 +12,7 @@ Here are a list of surprising features of Go that I have found:
     - is immutable (unlike C++; similar to Java and Python)
     - is one of the basic types
     - is a sequence of bytes, not characters; so, a string can contain any byte value, including null bytes
-    - the length of a string is the number of bytes, not the number of characters; so, `len("Hello, 世界")` returns 13, not 9, because the non-ASCII characters are represented by multiple bytes in UTF-8 encoding
+    - the length of a string is the number of bytes, not the number of characters; so, `len("Hello, 世界")` returns 13, not 9, because the non-ASCII characters are represented by multiple bytes in UTF-8 encoding; to find the length in characters, you can convert the string to a slice of runes and then use `len([]rune(s))`
     - text strings in Go are encoded in UTF-8, which is a variable-length encoding that can represent all Unicode characters; so, non-ASCII characters may take more than one byte to encode, and the number of bytes in a string may not match the number of characters
     - i-th byte of a string is not necessarily the i-th character; so, `s[0]` returns the first byte of the string, which may not be a complete character if the string contains non-ASCII characters
     - Go supports raw string literals, which are enclosed in backticks `` ` ``; raw string literals can contain any characters, including newlines and backslashes, and they do not support escape sequences
@@ -42,7 +42,7 @@ Here are a list of surprising features of Go that I have found:
     - does not require `break` statements to prevent fall-through; so, each case is automatically terminated unless you explicitly use the `fallthrough` keyword
     - can be _tagless_ (used without an expression), allowing you to write more flexible and complex conditions; so, `switch { case condition1: ... case condition2: ... }` is valid
     - The `default` case is optional; buf if you include it, it can be placed anywhere in the case list, not necessarily at the end
-    - can also be used with types, allowing you to perform type assertions in a clean and concise way; so, `switch v := x.(type) { case int: ... case string: ... }` is valid
+    - can also be used with types, allowing you to perform type switch in a clean and concise way; so, `switch v := x.(type) { case int: ... case string: ... }` is valid; note that `.(type)` uses the type assertion syntax but not necessarily a type assertion; it is used to determine the dynamic type of an interface value
 - Go's statements can be labeled, allowing you to break or continue to a specific label; so, you can write `label: for { ... if condition { break label } ... }` to break out of the loop when a certain condition is met
 - Go supports pointers, but it does not support pointer arithmetic; so, you can have `var p *int`, but you cannot do `p++` or `p--`
 - Go allows you to return the address of a local variable from a function, effectively making it _escape_ outside the function scope; what is actually happening is that Go allocates the variable on the heap instead of the stack when it detects that its address is being returned
@@ -77,12 +77,13 @@ Here are a list of surprising features of Go that I have found:
 - Go's maps:
     - (not really a surprise) are unordered collections of key-value pairs
     - (not really a surprise) keys must be of a type that is comparable (i.e., supports the `==` operator); values can be of any type
-    - (not really a surprise) are reference types (to a hash table]); when you assign a map to another variable or pass it to a function, you are copying the map header (which contains a pointer to the underlying data structure), but not the underlying data itself; so, changes to the map will affect all variables that reference the same map
+    - (not really a surprise) are reference types (to a hash table); when you assign a map to another variable or pass it to a function, you are copying the map header (which contains a pointer to the underlying data structure), but not the underlying data itself; so, changes to the map will affect all variables that reference the same map
     - (not really a surprise) can be created using the built-in `make` function; so, `m := make(map[string]int)` creates a map with string keys and integer values
     - can be accessed using the syntax `m[key]`, which returns the value associated with the key; **if the key does not exist in the map, it returns the zero value of the value type** (e.g., `0` for integers, `""` for strings, `nil` for pointers, etc.)
     - can be checked for the existence of a key using the two-value assignment form; so, `value, ok := m[key]` allows you to check if the key exists in the map, where `ok` will be `true` if the key exists and `false` otherwise
     - (not really a surprise) can be deleted using the built-in `delete` function; so, `delete(m, key)` removes the key-value pair associated with the specified key from the map
 - Go doesn't have a built-in set type, but you can use a map with empty struct values to implement a set; so, `set := make(map[string]bool)` creates a set of strings, and you can add elements to the set by setting `set[element] = true`, check for membership using `!set[element]`, and remove elements using `delete(set, element)`
+    - the other way to create a set is to use a map with empty struct values, which is more memory-efficient than using a map with boolean values; so, `set := make(map[string]struct{})` creates a set of strings, and you can add elements to the set by setting `set[element] = struct{}{}`, check for membership using `_, ok := set[element]`, and remove elements using `delete(set, element)`
 - Go structs:
     - (not a surprise) are value types; assignment of a struct copies the entire struct, and passing a struct to a function also copies the entire struct unless you pass a pointer to the struct
     - are comparable if all their fields are comparable
@@ -99,3 +100,19 @@ Here are a list of surprising features of Go that I have found:
     - `panic` is used to indicate a serious error that cannot be handled gracefully; it stops the normal execution of the program and begins panicking, unwinding the stack and running deferred functions
     - `recover` is used to regain control of a panicking goroutine; it can be called within a deferred function to catch the panic and resume normal execution
     - using `panic` and `recover` for normal error handling is discouraged, as it can make the code harder to read and maintain; instead, use `error` values to indicate recoverable errors
+- Methods may be declared not only on structs, but also on any __named__ type:
+    - this means you can define methods on types like `int`, `string`, or even custom types, as long as the type is named (e.g., `type MyInt int` allows you to define methods on `MyInt`)
+    - so long as the underlying type is neither a pointer nor an interface:
+        - the restriction on interface is obvious as it is not a concrete type with a defined underlying type
+        - the restriction on pointer is because Go allows methods with a pointer receiver; without this restriction, it would be possible to define methods on hidden pointer types, which could lead to ambiguity
+- Go allows methods with a pointer receiver so that the method can modify the receiver:
+    - this is not strictly required, but convention dictates that if any method of a type has a pointer receiver, all methods of that type should have a pointer receiver, even ones that do not strictly need it
+- Go compiler does the following "magic" with pointer receivers:
+    - if a method has a pointer receiver, the compiler automatically takes the address of the value when the method is called on a non-pointer value
+    - this allows you to call methods with pointer receivers on both pointer and non-pointer values, making the code more flexible and easier to use
+    - the opposite is true as well: if a method has a value receiver, the compiler automatically dereferences the pointer when the method is called on a pointer value, allowing you to call methods with value receivers on both pointer and non-pointer values
+    - this behavior is probably why there is a convention to use pointer receivers consistently for a type, as it ensures that methods can modify the receiver and that the code remains flexible and easy to use
+- Unlike other languages, Go allows `nil` to be a valid receiver value for methods with a pointer receiver:
+    - after all, `nil` is still a valid value for a method to use as long as it is not dereferenced in a way that would cause a runtime panic
+    - this behavior allows `nil` to represent an empty list, for example
+
