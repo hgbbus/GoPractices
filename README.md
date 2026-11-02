@@ -114,5 +114,19 @@ Here are a list of surprising features of Go that I have found:
     - this behavior is probably why there is a convention to use pointer receivers consistently for a type, as it ensures that methods can modify the receiver and that the code remains flexible and easy to use
 - Unlike other languages, Go allows `nil` to be a valid receiver value for methods with a pointer receiver:
     - after all, `nil` is still a valid value for a method to use as long as it is not dereferenced in a way that would cause a runtime panic
-    - this behavior allows `nil` to represent an empty list, for example
+    - this behavior allows `nil` to represent an empty list, for example.
+- Go does not support class inheritance; instead, it uses composition through struct embedding to achieve code reuse:
+    - struct embedding allows you to include one struct within another, promoting its fields and methods to the outer struct
+- Go supports method values and method expressions, which allow you to treat methods as first-class values and pass them around like any other function:
+    - a method value is a function (e.g., `distanceFromP`) that is bound to a specific receiver value (e.g., `distanceFromP = p.Distance`); it can be called like any other function, but it has access to the receiver's fields and methods
+    - a method expression (e.g., `Point.Distance`) is a function that is not bound to a specific receiver value; it can be called with any receiver of the appropriate type as its first argument (e.g., `Point.Distance(p, q)`), allowing you to use the same method on different instances of the type
+    - More commonly, method expressions are aliased to a function variable (e.g., `distanceFunc := Point.Distance`) and called with different receiver values (e.g., `distanceFunc(p, q)`), allowing you to use the same method on different instances of the type
+- Encapsulation is achieved in Go through the use of exported and unexported identifiers, which are determined by the capitalization of the first letter of the identifier:
+    - identifiers that start with an uppercase letter are exported (public) and can be accessed from other packages
+    - identifiers that start with a lowercase letter are unexported (private) and can only be accessed within the same package
+    - the visibility is controlled at the package level, not at the class or struct level, which is different from many other programming languages
+- Go getters and setters are typically implemented as methods on a struct; when naming getters, the convention is to use the name of the field being accessed without a `Get` prefix
+- Go uses interfaces to achieve polymorphism, allowing you to write functions that can operate on different types as long as they implement the same interface:
+    - this allows for more flexible and reusable code, as you can define functions that work with any type that satisfies the interface, without needing to know the specific type at compile time
+    - interfaces can be satisfied implicitly, meaning that a type does not need to explicitly declare that it implements an interface; if a type has the required methods, it automatically satisfies the interface
 
